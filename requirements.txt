@@ -1,0 +1,26 @@
+# Core Dependencies
+langgraph
+langchain
+langchain-google-genai
+langchain-mongodb
+langchain-community
+
+# Database
+pymongo
+
+# PDF Processing
+pdfplumber
+PyPDF2
+
+# Environment & Config
+python-dotenv
+
+# Streamlit
+streamlit
+
+# Utilities
+typing-extensions
+pydantic
+
+# Google AI
+google-generativeai
