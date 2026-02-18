@@ -79,7 +79,7 @@ class DocumentProcessor:
         year_match = re.search(r"20\d{2}", filename)
         if year_match:
             return year_match.group(0)
-        return "2024"  # Default year
+        return "2025"  # Default year
     
     def process_pdf(self, pdf_path: str) -> List[Document]:
         """Process a PDF and return chunked documents with metadata."""

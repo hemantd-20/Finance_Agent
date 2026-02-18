@@ -15,9 +15,9 @@ MONGODB_DB_NAME = os.getenv("MONGODB_DB_NAME", "financial_qa_db")
 MONGODB_COLLECTION_NAME = os.getenv("MONGODB_COLLECTION_NAME", "factsheet_embeddings")
 
 # Model Configuration
-EMBEDDING_MODEL = "gemini-embedding-001"
+EMBEDDING_MODEL = "BAAI/bge-m3"  # BGE-M3: 1024 dimensions, multilingual, local
 CLASSIFIER_MODEL = "gemini-2.5-flash"  # Fast model for classification
-GENERATION_MODEL = "gemini-2.5-flash"  # Main gecurl -X GET "https://generativelanguage.googleapis.com/v1beta/models?key={your_api_key}"curl -X GET "https://generativelanguage.googleapis.com/v1beta/models?key={your_api_key}"neration model
+GENERATION_MODEL = "gemini-2.5-flash"  # Main generation model
 
 # Document Processing Configuration
 CHUNK_SIZE = 1000

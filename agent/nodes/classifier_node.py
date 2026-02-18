@@ -21,7 +21,7 @@ def classifier_node(state: AgentState) -> AgentState:
     # Classification prompt
     prompt = f"""You are a query classifier for a financial Q&A system.
 
-Available factsheet months: October 2024, November 2024, December 2024
+Available factsheet months: October 2025, November 2025, December 2025
 
 Classify this query:
 Query: "{query}"
@@ -56,6 +56,7 @@ Your classification:"""
             response_text = response_text.split("```")[1].split("```")[0].strip()
         
         result = json.loads(response_text)
+        print(result)
         
         state["query_type"] = result.get("query_type", "intra")
         state["months_mentioned"] = result.get("months_mentioned", [])

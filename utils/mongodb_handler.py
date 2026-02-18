@@ -30,6 +30,7 @@ class MongoDBHandler:
         """Create vector search index in MongoDB Atlas."""
         # Note: This index must be created manually in MongoDB Atlas UI
         # or using Atlas CLI with the following configuration:
+        # IMPORTANT: LangChain MongoDB stores metadata as top-level fields, not nested
         index_config = {
             "name": "vector_index_1",
             "type": "vectorSearch",
@@ -38,16 +39,16 @@ class MongoDBHandler:
                     {
                         "type": "vector",
                         "path": "embedding",
-                        "numDimensions": 3072,  # Google embedding dimension
+                        "numDimensions": 1024,  # BGE-M3 embedding dimension
                         "similarity": "cosine"
                     },
                     {
                         "type": "filter",
-                        "path": "metadata.month"
+                        "path": "month"  # Top-level field, not metadata.month
                     },
                     {
                         "type": "filter",
-                        "path": "metadata.fund_name"
+                        "path": "fund_name"  # Top-level field, not metadata.fund_name
                     }
                 ]
             }
@@ -71,6 +72,10 @@ class MongoDBHandler:
     ) -> List[Document]:
         """Perform similarity search with optional metadata filtering."""
         try:
+            print(f"DEBUG MongoDB - Query: {query[:100]}...")
+            print(f"DEBUG MongoDB - k: {k}")
+            print(f"DEBUG MongoDB - filter_dict: {filter_dict}")
+            
             if filter_dict:
                 results = self.vector_store.similarity_search(
                     query=query,
@@ -82,9 +87,16 @@ class MongoDBHandler:
                     query=query,
                     k=k
                 )
+            
+            print(f"DEBUG MongoDB - Results count: {len(results)}")
+            if results:
+                print(f"DEBUG MongoDB - First result metadata: {results[0].metadata}")
+            
             return results
         except Exception as e:
             print(f"Error performing similarity search: {e}")
+            import traceback
+            traceback.print_exc()
             return []
     
     def similarity_search_with_score(

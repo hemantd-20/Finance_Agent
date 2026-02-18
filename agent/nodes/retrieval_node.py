@@ -12,17 +12,22 @@ def retrieval_node(state: AgentState) -> AgentState:
     query_type = state.get("query_type", "intra")
     months_mentioned = state.get("months_mentioned", [])
     
+    print(f"DEBUG - Query: {query}")
+    print(f"DEBUG - Query Type: {query_type}")
+    print(f"DEBUG - Months: {months_mentioned}")
+    
     # Initialize MongoDB handler
     mongodb_handler = MongoDBHandler()
     
     try:
         # Build metadata filter
+        # NOTE: LangChain MongoDB stores metadata as top-level fields, not nested under 'metadata'
         filter_dict = None
         
         if query_type == "intra" and months_mentioned:
             # For intra-doc queries with specific month mentioned
             filter_dict = {
-                "metadata.month": {"$in": months_mentioned}
+                "month": {"$in": months_mentioned}
             }
             k = config.TOP_K_RESULTS
         elif query_type == "intra" and not months_mentioned:
@@ -33,11 +38,14 @@ def retrieval_node(state: AgentState) -> AgentState:
             # For inter-doc, retrieve from all months
             if months_mentioned:
                 filter_dict = {
-                    "metadata.month": {"$in": months_mentioned}
+                    "month": {"$in": months_mentioned}
                 }
             else:
                 filter_dict = None
             k = config.TOP_K_RESULTS * 3  # Get more results for comparison
+        
+        print(f"DEBUG - Filter: {filter_dict}")
+        print(f"DEBUG - k: {k}")
         
         # Perform similarity search
         retrieved_docs = mongodb_handler.similarity_search(

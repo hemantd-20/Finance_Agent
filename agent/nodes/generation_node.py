@@ -30,8 +30,9 @@ def generation_node(state: AgentState) -> AgentState:
     for i, doc in enumerate(retrieved_docs):
         month = doc.metadata.get("month", "Unknown")
         source = doc.metadata.get("source", "Unknown")
+        year = doc.metadata.get("year", "2025")
         context_parts.append(
-            f"[Document {i+1} - {month} 2024 Factsheet]\n{doc.page_content}\n"
+            f"[Document {i+1} - {month} {year} Factsheet]\n{doc.page_content}\n"
         )
     
     context = "\n".join(context_parts)
@@ -42,7 +43,7 @@ def generation_node(state: AgentState) -> AgentState:
 CRITICAL RULES:
 1. Answer ONLY using information from the provided context below
 2. If the answer is not in the context, say "I don't have this information in the factsheets"
-3. Always cite which month's factsheet you're referencing (e.g., "According to the October 2024 factsheet...")
+3. Always cite which month's factsheet you're referencing (e.g., "According to the October 2025 factsheet...")
 4. For numerical data, quote EXACT values from the context
 5. Never make assumptions or use general knowledge
 6. Be concise and direct
@@ -63,7 +64,13 @@ Your answer (with citations):"""
         months = ["October", "November", "December"]
         for month in months:
             if month in answer:
-                citations.append(f"{month} 2024")
+                # Get year from retrieved docs for this month
+                year = "2025"  # Default
+                for doc in retrieved_docs:
+                    if doc.metadata.get("month") == month:
+                        year = doc.metadata.get("year", "2025")
+                        break
+                citations.append(f"{month} {year}")
         
         state["answer"] = answer
         state["citations"] = citations

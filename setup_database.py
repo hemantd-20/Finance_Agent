@@ -54,7 +54,7 @@ def setup_database(pdf_directory: str = "data/raw"):
     print("Setup Complete!")
     print("=" * 50)
     print("\nIMPORTANT: Make sure you have created the vector search index in MongoDB Atlas.")
-    print("Index configuration:")
+    print("Index configuration (metadata stored as top-level fields):")
     print("""
 {
   "name": "vector_index_1",
@@ -64,16 +64,16 @@ def setup_database(pdf_directory: str = "data/raw"):
       {
         "type": "vector",
         "path": "embedding",
-        "numDimensions": 3072,
+        "numDimensions": 1024,
         "similarity": "cosine"
       },
       {
         "type": "filter",
-        "path": "metadata.month"
+        "path": "month"
       },
       {
         "type": "filter",
-        "path": "metadata.fund_name"
+        "path": "fund_name"
       }
     ]
   }

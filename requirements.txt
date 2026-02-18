@@ -4,6 +4,7 @@ langchain
 langchain-google-genai
 langchain-mongodb
 langchain-community
+langchain-huggingface
 
 # Database
 pymongo
@@ -24,3 +25,7 @@ pydantic
 
 # Google AI
 google-generativeai
+
+# BGE-M3 Embeddings
+sentence-transformers
+FlagEmbedding

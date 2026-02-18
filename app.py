@@ -52,12 +52,12 @@ def main():
         This chatbot answers questions about HDFC Index Fund factsheets.
         
         **Available Data:**
-        - October 2024
-        - November 2024
-        - December 2024
+        - October 2025
+        - November 2025
+        - December 2025
         
         ### Sample Questions:
-        - Who is the Fund Manager for October 2024?
+        - Who is the Fund Manager for October 2025?
         - What is the NAV trend from October to December?
         - Compare the AUM across the three months
         - What was the portfolio turnover in November?

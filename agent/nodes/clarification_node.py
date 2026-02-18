@@ -20,7 +20,7 @@ def clarification_node(state: AgentState) -> AgentState:
     # Prompt to check if clarification is needed
     prompt = f"""You are a financial assistant analyzing user queries about HDFC Index Fund factsheets.
 
-Available factsheet months: October 2024, November 2024, December 2024
+Available factsheet months: October 2025, November 2025, December 2025
 
 Analyze this query and determine if it's clear enough to answer or needs clarification:
 Query: "{query}"

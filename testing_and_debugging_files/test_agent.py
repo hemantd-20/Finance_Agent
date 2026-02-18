@@ -17,10 +17,10 @@ def test_agent():
     
     # Test queries
     test_queries = [
-        "Who is the Fund Manager for HDFC Index fund in October 2024?",
-        "What is the NAV trend from October to December 2024?",
+        "Who is the Fund Manager for HDFC Index fund in October 2025?",
+        "What is the NAV trend from October to December 2025?",
         "Compare the AUM across the three months",
-        "What was the portfolio turnover ratio in November 2024?",
+        "What was the portfolio turnover ratio in November 2025?",
         "Tell me about the performance",  # Ambiguous - should ask for clarification
     ]
     

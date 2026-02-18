@@ -1,58 +1,40 @@
 # Financial Q&A Chatbot Agent
 
-A LangGraph-based AI agent that answers questions about HDFC Index Fund factsheets.
+A LangGraph-based AI agent that answers questions about HDFC Index Fund factsheets using semantic search and intelligent query processing.
 
 ## Features
 
 - **Clarification Handling**: Asks for clarification when queries are ambiguous
 - **Intelligent Query Classification**: Automatically detects intra-document vs inter-document queries
-- **Semantic Search**: Uses MongoDB Atlas Vector Search for accurate retrieval
+- **Semantic Search**: Uses MongoDB Atlas Vector Search with BGE-M3 embeddings
 - **Strict Grounding**: Prevents hallucinations by answering only from factsheet data
 - **Citation Tracking**: Provides source attribution for all answers
 - **Interactive UI**: Clean Streamlit interface for easy interaction
 
-## Architecture
-
-```
-User Query
-    ↓
-Clarification Check → [Ambiguous?] → Ask Question
-    ↓ [Clear]
-Query Classifier (Gemini 2.0 Flash Lite)
-    ↓
-MongoDB Vector Search + Metadata Filtering
-    ↓
-Answer Generation (Gemini 2.0 Flash)
-    ↓
-Validation & Citation
-    ↓
-Final Answer
-```
-
 ## Project Structure
 
 ```
-financial-qa-chatbot/
+Finance_Agent/
 ├── app.py                          # Streamlit interface
 ├── setup_database.py               # Database initialization script
 ├── config.py                       # Configuration
 ├── requirements.txt                # Dependencies
-├── .env.example                    # Environment variables template
+├── .env                            # Environment variables
 ├── agent/
 │   ├── graph.py                    # LangGraph workflow
 │   ├── state.py                    # State schema
 │   └── nodes/
-│       ├── clarification_node.py
-│       ├── classifier_node.py
-│       ├── retrieval_node.py
-│       ├── generation_node.py
-│       └── validation_node.py
+│       ├── clarification_node.py   # Handles ambiguous queries
+│       ├── classifier_node.py      # Classifies query type
+│       ├── retrieval_node.py       # Retrieves relevant documents
+│       ├── generation_node.py      # Generates answers
+│       └── validation_node.py      # Validates and adds citations
 ├── utils/
-│   ├── document_processor.py       # PDF processing
-│   ├── embeddings.py               # Embedding generation
+│   ├── document_processor.py       # PDF processing and chunking
+│   ├── embeddings.py               # BGE-M3 embedding generation
 │   └── mongodb_handler.py          # MongoDB operations
 └── data/
-    └── raw/                        # PDF factsheets (Oct, Nov, Dec)
+    └── raw/                        # PDF factsheets
 ```
 
 ## Setup Instructions
@@ -66,13 +48,13 @@ financial-qa-chatbot/
 ### 2. Installation
 
 ```bash
-# Clone the repository
-git clone <repository-url>
-cd financial-qa-chatbot
+# Navigate to project directory
+cd Finance_Agent
 
 # Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+python -m venv .venv
+.venv\Scripts\activate  # On Windows
+# source .venv/bin/activate  # On Linux/Mac
 
 # Install dependencies
 pip install -r requirements.txt
@@ -80,13 +62,7 @@ pip install -r requirements.txt
 
 ### 3. Environment Configuration
 
-Create a `.env` file in the root directory:
-
-```bash
-cp .env.example .env
-```
-
-Edit `.env` and add your credentials:
+Create a `.env` file in the project root with your credentials:
 
 ```
 GOOGLE_API_KEY=your_google_api_key_here
@@ -108,24 +84,23 @@ MONGODB_COLLECTION_NAME=factsheet_embeddings
 
 ```json
 {
-  "name": "vector_index",
+  "name": "vector_index_1",
   "type": "vectorSearch",
   "definition": {
     "fields": [
       {
         "type": "vector",
         "path": "embedding",
-        "numDimensions": 768,`
-        
+        "numDimensions": 1024,
         "similarity": "cosine"
       },
       {
         "type": "filter",
-        "path": "metadata.month"
+        "path": "month"
       },
       {
         "type": "filter",
-        "path": "metadata.fund_name"
+        "path": "fund_name"
       }
     ]
   }
@@ -134,18 +109,10 @@ MONGODB_COLLECTION_NAME=factsheet_embeddings
 
 ### 5. Add Factsheet PDFs
 
-Download HDFC Index Fund factsheets for October, November, and December 2024 from:
-https://www.hdfcfund.com/investor-services/factsheets
-
-Place them in `data/raw/` directory:
-
-```
-data/
-└── raw/
-    ├── HDFC_Index_Fund_October_2024.pdf
-    ├── HDFC_Index_Fund_November_2024.pdf
-    └── HDFC_Index_Fund_December_2024.pdf
-```
+Place HDFC Index Fund factsheets in `data/raw/` directory. The system currently includes:
+- October 2025
+- November 2025  
+- December 2025
 
 ### 6. Initialize Database
 
@@ -174,9 +141,9 @@ The app will open in your browser at `http://localhost:8501`
 ### Sample Questions
 
 **Intra-document (Single Month):**
-- "Who is the Fund Manager for October 2024?"
+- "Who is the Fund Manager for October 2025?"
 - "What is the NAV in November?"
-- "What was the AUM for December 2024?"
+- "What was the AUM for December 2025?"
 
 **Inter-document (Multiple Months):**
 - "How is the NAV trend across October to December?"
@@ -198,9 +165,9 @@ The app will open in your browser at `http://localhost:8501`
 
 ### Models Used
 
-- **Embeddings**: Google `text-embedding-004` (768 dimensions)
-- **Classification**: Gemini 2.0 Flash Lite (fast, cost-effective)
-- **Generation**: Gemini 2.0 Flash (accurate, grounded responses)
+- **Embeddings**: BGE-M3 (1024 dimensions, multilingual, local)
+- **Classification**: Gemini 2.5 Flash (fast, cost-effective)
+- **Generation**: Gemini 2.5 Flash (accurate, grounded responses)
 
 ### Key Features
 
@@ -225,98 +192,28 @@ The agent uses a state-based workflow:
 ### Common Issues
 
 1. **No documents retrieved**
-   - Verify MongoDB Vector Search index is created
-   - Check if PDFs were processed correctly
-   - Ensure embedding dimensions match (768)
+   - Verify MongoDB Vector Search index `vector_index_1` is created
+   - Check if PDFs were processed correctly with `setup_database.py`
+   - Ensure embedding dimensions match (1024 for BGE-M3)
 
 2. **API errors**
    - Verify `GOOGLE_API_KEY` is valid
    - Check API quota limits
-   - Ensure stable internet connection
 
-3. **Import errors**
-   - Reinstall dependencies: `pip install -r requirements.txt`
-   - Check Python version (3.9+)
-
-4. **MongoDB connection errors**
+3. **MongoDB connection errors**
    - Verify `MONGODB_URI` is correct
    - Check MongoDB Atlas network access settings
    - Ensure cluster is running
 
-## Project Constraints
+## Technology Stack
 
-- Simple and clean implementation
-- No unnecessary features
-- Separation of logic (agent) and UI (Streamlit)
-- Focus on accuracy and avoiding hallucinations
-- Free tier compatible (Gemini API)
-
-## Future Enhancements
-
-- Add more fund factsheets
-- Support for different fund types
-- Historical trend analysis
-- PDF export of answers
-- Multi-turn conversation memory
+- **LangGraph**: Agent workflow orchestration
+- **Gemini 2.5 Flash**: Query classification and answer generation
+- **BGE-M3**: Local multilingual embeddings (1024 dimensions)
+- **MongoDB Atlas**: Vector database with semantic search
+- **Streamlit**: Web interface
+- **PDFPlumber**: PDF text extraction
 
 ## License
 
 MIT License
-
-## Author
-
-Built as a Financial Q&A Agent using LangGraph and Gemini API.
-
-## Output: python setup_database.py
-==================================================
-Financial Q&A Agent - Database Setup
-==================================================
-
-Found 3 PDF files:
-  - HDFC-MF-Index-Solutions-Factsheet-December-2025_0.pdf
-  - HDFC-MF-Index-Solutions-Factsheet-November-2025_1.pdf
-  - HDFC-MF-Index-Solutions-Factsheet-October-2025.pdf
-
-Processing PDFs...
-Processed data/raw\HDFC-MF-Index-Solutions-Factsheet-December-2025_0.pdf: 603 chunks created
-Processed data/raw\HDFC-MF-Index-Solutions-Factsheet-November-2025_1.pdf: 470 chunks created
-Processed data/raw\HDFC-MF-Index-Solutions-Factsheet-October-2025.pdf: 454 chunks created
-Total documents created: 1527
-
-Total documents created: 1527
-
-Clearing existing data from MongoDB...
-All documents deleted from MongoDB Atlas
-
-Adding documents to MongoDB Atlas...
-Successfully added 1527 documents to MongoDB Atlas
-
-==================================================
-Setup Complete!
-==================================================
-
-IMPORTANT: Make sure you have created the vector search index in MongoDB Atlas.  
-Index configuration:
-
-{
-  "name": "vector_index",
-  "type": "vectorSearch",
-  "definition": {
-    "fields": [
-      {
-        "type": "vector",
-        "path": "embedding",
-        "numDimensions": 3072,
-        "similarity": "cosine"
-      },
-      {
-        "type": "filter",
-        "path": "metadata.month"
-      },
-      {
-        "type": "filter",
-        "path": "metadata.fund_name"
-      }
-    ]
-  }
-}
