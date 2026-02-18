@@ -213,7 +213,3 @@ The agent uses a state-based workflow:
 - **MongoDB Atlas**: Vector database with semantic search
 - **Streamlit**: Web interface
 - **PDFPlumber**: PDF text extraction
-
-## License
-
-MIT License
