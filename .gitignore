@@ -63,3 +63,6 @@ htmlcov/
 # Graph visualizations
 *.png
 *.jpg
+
+#testing files
+testing_and_debugging_files
