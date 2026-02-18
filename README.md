@@ -152,8 +152,8 @@ The app will open in your browser at `http://localhost:8501`
 
 ### Query Types
 
-- **🔵 Intra-doc**: Queries about a single month
-- **🟢 Inter-doc**: Queries comparing multiple months
+- **Intra-doc**: Queries about a single month
+- **Inter-doc**: Queries comparing multiple months
 
 ### Confidence Levels
 
