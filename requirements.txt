@@ -2,6 +2,7 @@
 langgraph
 langchain
 langchain-google-genai
+langchain-groq
 langchain-mongodb
 langchain-community
 langchain-huggingface

@@ -9,6 +9,7 @@ dependencies = [
     "langchain>=1.2.6",
     "langchain-community>=0.4.1",
     "langchain-google-genai>=4.2.0",
+    "langchain-groq>=0.2.1",
     "langchain-mongodb>=0.11.0",
     "langgraph>=1.0.7",
     "pdfplumber>=0.11.9",

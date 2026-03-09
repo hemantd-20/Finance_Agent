@@ -1,7 +1,7 @@
 """Classifier node to determine query type and extract months."""
 
 from agent.state import AgentState
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_groq import ChatGroq
 import config
 import json
 
@@ -12,9 +12,9 @@ def classifier_node(state: AgentState) -> AgentState:
     query = state["query"]
     
     # Initialize LLM
-    llm = ChatGoogleGenerativeAI(
+    llm = ChatGroq(
         model=config.CLASSIFIER_MODEL,
-        google_api_key=config.GOOGLE_API_KEY,
+        groq_api_key=config.GROQ_API_KEY,
         temperature=0
     )
     

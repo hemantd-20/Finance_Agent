@@ -8,6 +8,7 @@ load_dotenv()
 
 # API Keys
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 MONGODB_URI = os.getenv("MONGODB_URI")
 
 # MongoDB Configuration
@@ -16,7 +17,7 @@ MONGODB_COLLECTION_NAME = os.getenv("MONGODB_COLLECTION_NAME", "factsheet_embedd
 
 # Model Configuration
 EMBEDDING_MODEL = "BAAI/bge-m3"  # BGE-M3: 1024 dimensions, multilingual, local
-CLASSIFIER_MODEL = "gemini-2.5-flash"  # Fast model for classification
+CLASSIFIER_MODEL = "llama-3.3-70b-versatile"  # Groq Llama 3.3 70B for classification
 GENERATION_MODEL = "gemini-2.5-flash"  # Main generation model
 
 # Document Processing Configuration
@@ -30,5 +31,7 @@ SIMILARITY_THRESHOLD = 0.7
 # Validation
 if not GOOGLE_API_KEY:
     raise ValueError("GOOGLE_API_KEY not found in environment variables")
+if not GROQ_API_KEY:
+    raise ValueError("GROQ_API_KEY not found in environment variables")
 if not MONGODB_URI:
     raise ValueError("MONGODB_URI not found in environment variables")

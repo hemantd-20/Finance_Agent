@@ -1,7 +1,7 @@
 """Clarification node to check if query needs clarification."""
 
 from agent.state import AgentState
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_groq import ChatGroq
 import config
 
 
@@ -11,9 +11,9 @@ def clarification_node(state: AgentState) -> AgentState:
     query = state["query"]
     
     # Initialize LLM
-    llm = ChatGoogleGenerativeAI(
+    llm = ChatGroq(
         model=config.CLASSIFIER_MODEL,
-        google_api_key=config.GOOGLE_API_KEY,
+        groq_api_key=config.GROQ_API_KEY,
         temperature=0
     )
     
