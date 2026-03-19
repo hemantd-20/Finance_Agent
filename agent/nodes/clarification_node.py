@@ -1,6 +1,7 @@
 """Clarification node to check if query needs clarification."""
 
 from agent.state import AgentState
+from agent.prompts.prompt_loader import prompt_registry
 from langchain_groq import ChatGroq
 import config
 
@@ -17,30 +18,8 @@ def clarification_node(state: AgentState) -> AgentState:
         temperature=0
     )
     
-    # Prompt to check if clarification is needed
-    prompt = f"""You are a financial assistant analyzing user queries about HDFC Index Fund factsheets.
-
-Available factsheet months: October 2025, November 2025, December 2025
-
-Analyze this query and determine if it's clear enough to answer or needs clarification:
-Query: "{query}"
-
-Rules:
-1. If the query is clear and answerable with factsheet data, respond: CLEAR
-2. If the query is ambiguous or missing critical information, respond: AMBIGUOUS
-3. If AMBIGUOUS, provide a brief clarification question
-
-Examples:
-- "Who is the fund manager?" → CLEAR (we have this for all months)
-- "What is the NAV?" → AMBIGUOUS (which month?)
-- "NAV trend" → CLEAR (implies across months)
-- "Tell me about the fund" → AMBIGUOUS (too vague)
-
-Respond in this format:
-STATUS: [CLEAR/AMBIGUOUS]
-CLARIFICATION: [question if ambiguous, else empty]
-
-Your analysis:"""
+    # Load clarification prompt from registry
+    prompt = prompt_registry.format_prompt("clarification_prompt", query=query)
     
     try:
         response = llm.invoke(prompt)

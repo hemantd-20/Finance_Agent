@@ -1,6 +1,7 @@
 """Generation node for creating answers with strict grounding."""
 
 from agent.state import AgentState
+from agent.prompts.prompt_loader import prompt_registry
 from langchain_google_genai import ChatGoogleGenerativeAI
 import config
 
@@ -37,23 +38,8 @@ def generation_node(state: AgentState) -> AgentState:
     
     context = "\n".join(context_parts)
     
-    # Generation prompt with strict grounding instructions
-    prompt = f"""You are a financial data assistant answering questions about HDFC Index Fund factsheets.
-
-CRITICAL RULES:
-1. Answer ONLY using information from the provided context below
-2. If the answer is not in the context, say "I don't have this information in the factsheets"
-3. Always cite which month's factsheet you're referencing (e.g., "According to the October 2025 factsheet...")
-4. For numerical data, quote EXACT values from the context
-5. Never make assumptions or use general knowledge
-6. Be concise and direct
-
-CONTEXT:
-{context}
-
-USER QUERY: {query}
-
-Your answer (with citations):"""
+    # Load generation prompt from registry
+    prompt = prompt_registry.format_prompt("generation_prompt", context=context, query=query)
     
     try:
         response = llm.invoke(prompt)

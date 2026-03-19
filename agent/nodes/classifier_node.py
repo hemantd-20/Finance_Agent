@@ -1,6 +1,7 @@
 """Classifier node to determine query type and extract months."""
 
 from agent.state import AgentState
+from agent.prompts.prompt_loader import prompt_registry
 from langchain_groq import ChatGroq
 import config
 import json
@@ -18,31 +19,8 @@ def classifier_node(state: AgentState) -> AgentState:
         temperature=0
     )
     
-    # Classification prompt
-    prompt = f"""You are a query classifier for a financial Q&A system.
-
-Available factsheet months: October 2025, November 2025, December 2025
-
-Classify this query:
-Query: "{query}"
-
-Classification Types:
-1. INTRA-DOC: Query needs data from a SINGLE month
-   - Examples: "Who is fund manager in October?", "What is NAV for November?"
-   
-2. INTER-DOC: Query needs data from MULTIPLE months
-   - Examples: "NAV trend across months", "Compare October and December", "How did performance change?"
-
-Also extract any months mentioned in the query.
-
-Respond in JSON format:
-{{
-  "query_type": "intra" or "inter",
-  "months_mentioned": ["October", "November", "December"] or [],
-  "reasoning": "brief explanation"
-}}
-
-Your classification:"""
+    # Load classification prompt from registry
+    prompt = prompt_registry.format_prompt("classifier_prompt", query=query)
     
     try:
         response = llm.invoke(prompt)
