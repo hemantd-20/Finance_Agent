@@ -66,3 +66,5 @@ htmlcov/
 
 #testing files
 testing_and_debugging_files
+tests/
+evaluation/

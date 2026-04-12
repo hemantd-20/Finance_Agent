@@ -5,6 +5,9 @@ from agent.prompts.prompt_loader import prompt_registry
 from langchain_groq import ChatGroq
 import config
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def classifier_node(state: AgentState) -> AgentState:
@@ -40,6 +43,24 @@ def classifier_node(state: AgentState) -> AgentState:
         state["months_mentioned"] = result.get("months_mentioned", [])
         
         print(f"Classification: {state['query_type']}, Months: {state['months_mentioned']}")
+        
+        # Add custom metadata to classifier span (Requirements 2.1, 10.1, 10.3)
+        try:
+            from langfuse.decorators import langfuse_context
+            
+            # Update current observation (span) with classifier metadata
+            langfuse_context.update_current_observation(
+                metadata={
+                    "query_type": state["query_type"],
+                    "months_mentioned": state["months_mentioned"],
+                    "classifier_model": config.CLASSIFIER_MODEL
+                }
+            )
+            logger.debug(f"Classifier span metadata updated: query_type={state['query_type']}, months={state['months_mentioned']}")
+        except ImportError:
+            logger.debug("langfuse.decorators not available for span metadata")
+        except Exception as e:
+            logger.debug(f"Failed to update classifier span metadata: {str(e)}")
     
     except Exception as e:
         print(f"Error in classifier node: {e}")

@@ -1,5 +1,8 @@
 """LangGraph workflow for the Financial Q&A Agent."""
 
+import asyncio
+import logging
+from typing import Optional
 from langgraph.graph import StateGraph, END
 from agent.state import AgentState
 from agent.nodes.clarification_node import clarification_node
@@ -7,6 +10,10 @@ from agent.nodes.classifier_node import classifier_node
 from agent.nodes.retrieval_node import retrieval_node
 from agent.nodes.generation_node import generation_node
 from agent.nodes.validation_node import validation_node
+from config import get_langfuse_handler, get_langfuse_client
+from evaluation.ragas_evaluator import RagasEvaluator
+
+logger = logging.getLogger(__name__)
 
 
 def create_agent_graph():
@@ -57,6 +64,17 @@ class FinancialQAAgent:
     
     def __init__(self):
         self.app = create_agent_graph()
+        # Initialize Langfuse handler for tracing (Requirement 1.1)
+        self.langfuse_handler = get_langfuse_handler()
+        if self.langfuse_handler:
+            logger.info("Langfuse tracing enabled for FinancialQAAgent")
+        else:
+            logger.info("Langfuse tracing disabled")
+        
+        # Initialize Ragas evaluator (Requirement 6.1, 6.2, 6.3, 6.4, 6.5)
+        langfuse_client = get_langfuse_client()
+        self.ragas_evaluator = RagasEvaluator(langfuse_client)
+        logger.info("Ragas evaluator initialized")
     
     def query(self, user_query: str) -> dict:
         """Process a user query and return the response."""
@@ -76,8 +94,93 @@ class FinancialQAAgent:
             "error": None
         }
         
+        # Prepare config with callback handler (Requirement 1.1, 1.5)
+        config = {}
+        if self.langfuse_handler:
+            config["callbacks"] = [self.langfuse_handler]
+        
         # Run the workflow
-        final_state = self.app.invoke(initial_state)
+        final_state = self.app.invoke(initial_state, config=config)
+        
+        # Add trace metadata tagging (Requirements 10.1, 10.2, 10.3)
+        if self.langfuse_handler:
+            try:
+                from langfuse.decorators import langfuse_context
+                
+                # Extract metadata from final state
+                query_type = final_state.get("query_type", "unknown")
+                confidence = final_state.get("confidence", "unknown")
+                months_mentioned = final_state.get("months_mentioned", [])
+                is_grounded = final_state.get("is_grounded", False)
+                retrieved_docs = final_state.get("retrieved_docs", [])
+                citations = final_state.get("citations", [])
+                
+                # Create trace tags (Requirements 10.1, 10.2, 10.3)
+                tags = [
+                    f"query_type:{query_type}",
+                    f"confidence:{confidence}"
+                ]
+                if months_mentioned:
+                    months_str = ",".join(months_mentioned) if isinstance(months_mentioned, list) else str(months_mentioned)
+                    tags.append(f"months:{months_str}")
+                
+                # Create metadata dict
+                metadata = {
+                    "query": user_query,
+                    "query_type": query_type,
+                    "months_mentioned": months_mentioned,
+                    "confidence": confidence,
+                    "is_grounded": is_grounded,
+                    "num_retrieved_docs": len(retrieved_docs) if retrieved_docs else 0,
+                    "citations": citations if citations else []
+                }
+                
+                # Set trace name and metadata
+                langfuse_context.update_current_trace(
+                    name=f"FinancialQA: {query_type}",
+                    tags=tags,
+                    metadata=metadata
+                )
+                
+                logger.debug(f"Trace metadata updated: tags={tags}, metadata={metadata}")
+                
+                # Trigger Ragas evaluation asynchronously (Requirement 6.1, 6.2, 6.3, 6.4, 6.5)
+                # Extract trace ID from context
+                try:
+                    current_trace = langfuse_context.get_current_trace()
+                    if current_trace and hasattr(current_trace, 'id'):
+                        trace_id = current_trace.id
+                        
+                        # Extract contexts from retrieved documents
+                        contexts = []
+                        if retrieved_docs:
+                            contexts = [
+                                doc.page_content for doc in retrieved_docs
+                                if hasattr(doc, 'page_content')
+                            ]
+                        
+                        # Extract answer
+                        answer = final_state.get("answer", "")
+                        
+                        # Trigger evaluation asynchronously (don't block response)
+                        if contexts and answer and not final_state.get("needs_clarification", False):
+                            asyncio.create_task(
+                                self.ragas_evaluator.evaluate_trace(
+                                    trace_id,
+                                    user_query,
+                                    contexts,
+                                    answer
+                                )
+                            )
+                            logger.debug(f"Triggered async Ragas evaluation for trace {trace_id}")
+                
+                except Exception as e:
+                    logger.debug(f"Could not trigger Ragas evaluation: {str(e)}")
+                
+            except ImportError:
+                logger.warning("langfuse.decorators not available for trace metadata tagging")
+            except Exception as e:
+                logger.warning(f"Failed to update trace metadata: {str(e)}")
         
         # Prepare response
         response = {

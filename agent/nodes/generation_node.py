@@ -62,6 +62,23 @@ def generation_node(state: AgentState) -> AgentState:
         state["citations"] = citations
         state["is_grounded"] = True
         
+        # Add custom metadata to generation span (Requirement 2.2)
+        try:
+            from langfuse.decorators import langfuse_context
+            
+            # Update current observation (span) with generation metadata
+            langfuse_context.update_current_observation(
+                metadata={
+                    "num_context_docs": len(retrieved_docs),
+                    "citations": citations
+                }
+            )
+            print(f"Generation span metadata updated: num_context_docs={len(retrieved_docs)}, citations={citations}")
+        except ImportError:
+            print("langfuse.decorators not available for span metadata")
+        except Exception as e:
+            print(f"Failed to update generation span metadata: {str(e)}")
+        
     except Exception as e:
         print(f"Error in generation node: {e}")
         state["answer"] = "I encountered an error while generating the answer. Please try again."
